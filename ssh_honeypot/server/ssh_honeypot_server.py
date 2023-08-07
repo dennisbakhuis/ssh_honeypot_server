@@ -25,6 +25,7 @@ class SSHHoneypotServer(paramiko.ServerInterface):
         address,
         data_file_name: Path,
         data_file_lock: threading.Lock,
+        ip_info_api_token: str,
     ):
         """
         Create a new SSH server interface.
@@ -42,6 +43,7 @@ class SSHHoneypotServer(paramiko.ServerInterface):
         self.client_address = address
         self.data_file_name = data_file_name
         self.data_file_lock = data_file_lock
+        self.ip_info_api_token = ip_info_api_token
 
     def check_channel_request(self, kind, chanid):
         """Check the channel request."""
@@ -67,7 +69,7 @@ class SSHHoneypotServer(paramiko.ServerInterface):
 
         try:
             log_file = open(self.data_file_name, "a")
-            ip_info = get_ip_info(self.client_address[0])
+            ip_info = get_ip_info(self.client_address[0], self.ip_info_api_token)
             row = {
                 "timestamp": datetime.datetime.now().isoformat(" ", "seconds"),
                 "username": username,

@@ -17,13 +17,14 @@ def handle_ssh_connection(
     rsa_key,
     data_file_name: Path,
     data_file_lock: threading.Lock,
+    ip_info_api_token: str = "",
 ):
     """Handle a new SSH connection."""
     try:
         transport = paramiko.Transport(client)
 
         transport.add_server_key(rsa_key)
-        server = SSHHoneypotServer(address, data_file_name, data_file_lock)
+        server = SSHHoneypotServer(address, data_file_name, data_file_lock, ip_info_api_token)
 
         try:
             transport.start_server(server=server)

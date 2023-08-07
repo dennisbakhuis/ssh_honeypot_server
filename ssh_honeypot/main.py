@@ -5,6 +5,7 @@ import sys
 import threading
 from pathlib import Path
 import argparse
+import os
 
 import paramiko
 
@@ -23,6 +24,7 @@ def start_server(
     server_port: int = 2222,
     maximum_connections: int = 10,
     data_file_name: Path = Path("./ssh_honeypot_data.jsonl"),
+    ip_info_api_token: str = "",
 ):
     """Start the SSH Honeypot Server."""
     try:
@@ -55,7 +57,7 @@ def start_server(
 
         new_connection = threading.Thread(
             target=handle_ssh_connection,
-            args=((client, address, rsa_key, data_file_name, data_file_lock)),
+            args=((client, address, rsa_key, data_file_name, data_file_lock, ip_info_api_token)),
         )
         new_connection.start()
         threads.append(new_connection)
@@ -89,13 +91,24 @@ def main(arguments=None):
         default="./ssh_honeypot_data.jsonl",
         help="Data file name (default: ./ssh_honeypot_data.jsonl)",
     )
+    parser.add_argument(
+        "-t",
+        "--ip-info-api-token",
+        default="",
+        help="ipinfo.io API token (default: None)",
+    )
 
     arguments = parser.parse_args(arguments)
 
     start_server(
-        server_port=arguments.port,
-        maximum_connections=arguments.max_connections,
-        data_file_name=Path(arguments.file),
+        server_port=int(os.environ.get("HONEYPOT_PORT", arguments.port)),
+        maximum_connections=int(
+            os.environ.get("HONEYPOT_MAX_CONNECTIONS", arguments.max_connections)
+        ),
+        data_file_name=Path(
+            os.environ.get("HONEYPOT_OUTPUT_FILE", arguments.file),
+        ),
+        ip_info_api_token=os.environ.get("HONEYPOT_IP_INFO_API_TOKEN", arguments.ip_info_api_token),
     )
 
 
